@@ -58,10 +58,15 @@ class pic(object):
         self.state = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}State')
         self.country = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}Country')
 
-        t = str(self.tags['EXIF DateTimeOriginal'])
-        self.shot_time = datetime.datetime.strptime(t, "%Y:%m:%d %H:%M:%S")
+        if 'EXIF DateTimeOriginal' in self.tags:
+            t = str(self.tags['EXIF DateTimeOriginal'])
+            self.shot_time = datetime.datetime.strptime(t, "%Y:%m:%d %H:%M:%S")
+        else:
+            self.shot_time = None
 
-        self.fullname = ', '.join(filter(None, [self.city, self.state, self.country])) + self.shot_time.strftime(" (%d %B %Y)")
+        self.fullname = ', '.join(filter(None, [self.city, self.state, self.country]))
+        if self.shot_time != None:
+            self.fullname += self.shot_time.strftime(" (%d %B %Y)")
 
         self.label = pyglet.text.Label(self.fullname,
                                         font_name='Droid Sans Bold',
