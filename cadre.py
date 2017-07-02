@@ -9,8 +9,8 @@ from os import walk
 from random import shuffle
 import threading
 
-basepath = 'Y:'
-pathseparator = '\\'
+basepath = '/mnt/photos'
+pathseparator = '/'
 
 images = []
 for (dirpath, dirnames, filenames) in walk(basepath):
