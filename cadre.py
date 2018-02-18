@@ -24,16 +24,12 @@ os.environ['DISPLAY'] = ":0"
 window = pyglet.window.Window(fullscreen=True)
 window_dim = window.get_size()
 
-#subprocess.call('xset dpms force off', shell=True)
-#time.sleep(10)
-#subprocess.call('xset dpms force on', shell=True)
-
 class pic(object):
     def __init__(self, filename):
         self.filename = filename
-        fstream = open(filename, 'rb')
+        fstream = open(self.filename, 'rb')
 
-        self.image = pyglet.image.load(filename, file=fstream)
+        self.image = pyglet.image.load(self.filename, file=fstream)
         self.image.anchor_x = self.image.width // 2
         self.image.anchor_y = self.image.height // 2
 
@@ -46,17 +42,29 @@ class pic(object):
         xmp_end = data.find('</x:xmpmeta')
         xmp_str = data[xmp_start:xmp_end+12]
 
-        namesp = {  'x': 'adobe:ns:meta/',
+        namesp = {
+                'x': 'adobe:ns:meta/',
                 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                'photoshop': 'http://ns.adobe.com/photoshop/1.0/'
+                'photoshop': 'http://ns.adobe.com/photoshop/1.0/',
+                'dc': 'http://purl.org/dc/elements/1.1/'
                 }
 
         xmp_tree = ET.fromstring(xmp_str)
         xmp_desc = xmp_tree.find('rdf:RDF', namesp).find('rdf:Description', namesp)
 
-        self.city = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}City')
-        self.state = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}State')
-        self.country = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}Country')
+        try:
+            self.title = xmp_desc.find('dc:title', namesp).find('rdf:Alt', namesp).find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li').text.strip()
+        except:
+            self.title = None
+
+        if  self.title != None:
+            self.fullname = self.title
+        else:
+            self.city = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}City')
+            self.state = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}State')
+            self.country = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}Country')
+
+            self.fullname = ', '.join(filter(None, [self.city, self.state, self.country]))
 
         if 'EXIF DateTimeOriginal' in self.tags:
             t = str(self.tags['EXIF DateTimeOriginal'])
@@ -64,7 +72,6 @@ class pic(object):
         else:
             self.shot_time = None
 
-        self.fullname = ', '.join(filter(None, [self.city, self.state, self.country]))
         if self.shot_time != None:
             self.fullname += self.shot_time.strftime(" (%d %B %Y)")
 
