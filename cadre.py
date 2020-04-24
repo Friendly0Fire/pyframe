@@ -116,5 +116,11 @@ def on_draw():
     if current_picture != None:
         current_picture.draw()
 
+@window.event
+def on_key_press(symbol, modifiers):
+    if symbol == pyglet.window.key.ESCAPE:
+        global window
+        window.close()
+
 pyglet.clock.schedule_interval(picture_update, 5)
 pyglet.app.run()
