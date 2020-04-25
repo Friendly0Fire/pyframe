@@ -2,13 +2,13 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-if ["$#" -ne 1 ]; then
+if [ "$#" -ne 1 ]; then
     echo "Please provide the SAMBA share path as an argument (no spaces in path)."
 fi
 
 # Python
-sudo apt install python3
-pip3 install -r requirements.txt
+sudo apt install python3 python3-pip
+sudo pip3 install -r requirements.txt
 
 # Crontab setup
 crontab -l > cron.tmp
@@ -25,5 +25,3 @@ sudo echo "$1 /mnt/photos cifs _netdev,username=root,password=,dir_mode=0755,uid
 sudo mount -o rw,remount /boot
 sudo echo "hdmi_blanking=1" >> /boot/config.txt
 sudo mount -o ro,remount /boot
-
-sudo shutdown -r now

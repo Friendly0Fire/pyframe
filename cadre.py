@@ -38,6 +38,7 @@ class pic(object):
 
         fstream.seek(0, 0)
         data = fstream.read().decode('utf-8', 'ignore')
+        fstream.close()
         xmp_start = data.find('<x:xmpmeta')
         xmp_end = data.find('</x:xmpmeta')
         xmp_str = data[xmp_start:xmp_end+12]
@@ -92,6 +93,9 @@ class pic(object):
         self.image.blit(window_dim[0] // 2, window_dim[1] // 2)
         self.back_label.draw()
         self.label.draw()
+
+    def __del__(self):
+        self.image
 
 
 image_at = 0
