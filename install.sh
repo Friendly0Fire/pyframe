@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # Python
-sudo apt install python3 python3-pip
+sudo apt install python3 python3-pip cifs-utils freeglut3-dev
 sudo pip3 install -r requirements.txt
 
 # Crontab setup
@@ -20,8 +20,8 @@ crontab cron.tmp
 rm cron.tmp
 
 sudo mkdir /mnt/photos
-sudo echo "$1 /mnt/photos cifs _netdev,username=root,password=,dir_mode=0755,uid=500,gid=500 0 0" >> /etc/fstab
+sudo su -c "echo '$1 /mnt/photos cifs _netdev,username=root,password=,dir_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab"
 
 sudo mount -o rw,remount /boot
-sudo echo "hdmi_blanking=1" >> /boot/config.txt
+sudo su -c "echo 'hdmi_blanking=1' >> /boot/config.txt"
 sudo mount -o ro,remount /boot
