@@ -16,6 +16,10 @@ images = []
 for (dirpath, dirnames, filenames) in walk(basepath):
     images.extend(filenames)
     break
+if len(images) == 0:
+    print("Error: no images found.")
+    exit(1)
+
 shuffle(images)
 
 locale.setlocale(locale.LC_ALL, '')

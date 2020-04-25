@@ -14,7 +14,6 @@ sudo pip3 install -r requirements.txt
 # Crontab setup
 crontab -l > cron.tmp
 echo "* * * * * python3 $DIR/cadre.py > $DIR/cadre.log 2>&1" >> cron.tmp
-echo "* * * * * python3 $DIR/cadre.py > $DIR/cadre.log 2>&1" >> cron.tmp
 echo "30 23 * * * xset dpms force off" >> cron.tmp
 echo "0 8 * * * xset dpms force on" >> cron.tmp
 crontab cron.tmp
