@@ -94,9 +94,6 @@ class pic(object):
         self.back_label.draw()
         self.label.draw()
 
-    def __del__(self):
-        self.image
-
 
 image_at = 0
 current_picture = None
