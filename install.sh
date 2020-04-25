@@ -8,7 +8,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # Python
-sudo apt install python3 python3-pip cifs-utils freeglut3-dev unclutter
+sudo apt install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
 sudo pip3 install -r requirements.txt
 
 # Crontab setup

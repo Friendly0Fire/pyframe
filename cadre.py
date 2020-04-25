@@ -1,5 +1,6 @@
 import pyglet
 import exifread
+from tendo import singleton
 import xml.etree.ElementTree as ET
 import datetime
 import locale
@@ -8,6 +9,8 @@ import time
 from os import walk
 from random import shuffle
 import threading
+
+me = singleton.SingleInstance()
 
 basepath = '/mnt/photos'
 pathseparator = '/'
