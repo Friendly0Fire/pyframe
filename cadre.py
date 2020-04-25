@@ -26,6 +26,7 @@ locale.setlocale(locale.LC_ALL, '')
 os.environ['DISPLAY'] = ":0"
 
 window = pyglet.window.Window(fullscreen=True)
+window.set_mouse_visible(False)
 window_dim = window.get_size()
 
 class pic(object):
