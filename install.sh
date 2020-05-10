@@ -14,14 +14,8 @@ sudo pip3 install -r requirements.txt
 # Crontab setup
 crontab -l > cron.tmp
 echo "* * * * * python3 $DIR/cadre.py > $DIR/cadre.log 2>&1" >> cron.tmp
-echo "30 23 * * * xset dpms force off" >> cron.tmp
-echo "0 8 * * * xset dpms force on" >> cron.tmp
 crontab cron.tmp
 rm cron.tmp
 
 sudo mkdir /mnt/photos
 sudo su -c "echo '$1 /mnt/photos cifs _netdev,username=root,password=,dir_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab"
-
-sudo mount -o rw,remount /boot
-sudo su -c "echo 'hdmi_blanking=1' >> /boot/config.txt"
-sudo mount -o ro,remount /boot

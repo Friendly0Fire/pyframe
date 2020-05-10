@@ -1,3 +1,5 @@
 pyglet>=1.2.4
 ExifRead>=2.1.2
 tendo
+cec
+schedule

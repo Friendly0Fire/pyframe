@@ -9,6 +9,8 @@ import time
 from os import walk
 from random import shuffle
 import threading
+import cec
+import schedule
 
 me = singleton.SingleInstance()
 
@@ -27,6 +29,12 @@ shuffle(images)
 
 locale.setlocale(locale.LC_ALL, '')
 os.environ['DISPLAY'] = ":0"
+cec.init()
+
+tv = cec.Device(0)
+tv.power_on()
+tv_state = True
+cec.set_active_source()
 
 window = pyglet.window.Window(fullscreen=True)
 window.set_mouse_visible(False)
@@ -107,15 +115,18 @@ image_at = 0
 current_picture = None
 
 def picture_update(dt):
+    schedule.run_pending()
+
     global image_at
     global current_picture
     global images
     global basepath
     current_picture = pic(basepath + pathseparator + images[image_at])
 
-    image_at += 1
-    if image_at == len(images):
-        image_at = 0
+    if tv_state:
+        image_at += 1
+        if image_at == len(images):
+            image_at = 0
 
 @window.event
 def on_draw():
@@ -130,6 +141,23 @@ def on_key_press(symbol, modifiers):
     if symbol == pyglet.window.key.ESCAPE:
         global window
         window.close()
+
+def shutdown_tv():
+    global cec
+    global tv_state
+    tv = cec.Device(0)
+    tv.standby()
+    tv_state = False
+
+def turnon_tv():
+    global cec
+    global tv_state
+    tv = cec.Device(0)
+    tv.power_on()
+    tv_state = True
+
+schedule.every().day.at("23:30").do(shutdown_tv)
+schedule.every().day.at("8:00").do(turnon_tv)
 
 pyglet.clock.schedule_interval(picture_update, 5)
 pyglet.app.run()
