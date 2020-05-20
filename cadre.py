@@ -10,31 +10,44 @@ from os import walk
 from random import shuffle
 import threading
 import cec
-import schedule
+import sys
+import datetime
 
 me = singleton.SingleInstance()
+
+bufferedStream = open('cadre.log', 'a', buffering=1)
+
+sys.stdout = bufferedStream
+sys.stderr = bufferedStream
+
+print("")
+print("-------------------------------------")
+print("Launching new instance of Cadre.py...")
+print("-------------------------------------")
+print("")
 
 basepath = '/mnt/photos'
 pathseparator = '/'
 
 images = []
-for (dirpath, dirnames, filenames) in walk(basepath):
-    images.extend(filenames)
-    break
-if len(images) == 0:
-    print("Error: no images found.")
-    exit(1)
+def images_load():
+    global images
+    for (dirpath, dirnames, filenames) in walk(basepath):
+        images.extend(filenames)
+        break
 
-shuffle(images)
+    if len(images) == 0:
+        print("Error: no images found.")
+        exit(1)
+
+    shuffle(images)
+
+images_load()
 
 locale.setlocale(locale.LC_ALL, '')
 os.environ['DISPLAY'] = ":0"
-cec.init()
 
-tv = cec.Device(0)
-tv.power_on()
-tv_state = True
-cec.set_active_source()
+cec.init()
 
 window = pyglet.window.Window(fullscreen=True)
 window.set_mouse_visible(False)
@@ -115,17 +128,40 @@ image_at = 0
 current_picture = None
 
 def picture_update(dt):
-    schedule.run_pending()
-
     global image_at
     global current_picture
     global images
     global basepath
     current_picture = pic(basepath + pathseparator + images[image_at])
 
-    if tv_state:
+    now = datetime.datetime.now().time()
+    startt = datetime.time(hour=8, minute=0)
+    endt = datetime.time(hour=23, minute=30)
+
+    istvon = False
+    try:
+        global cec
+        tv = cec.Device(0)
+
+        istvon = tv.is_on()
+
+        if startt <= now and endt >= now:
+            if not istvon:
+                tv.power_on()
+                print("Powering TV on...")
+        else:
+            if istvon:
+                tv.standby()
+                istvon = False
+                print("Powering TV off...")
+    except:
+        print("Exception in CEC TV handling: ", sys.exc_info()[0])
+        istvon = False
+
+    if istvon:
         image_at += 1
         if image_at == len(images):
+            images_load()
             image_at = 0
 
 @window.event
@@ -141,23 +177,6 @@ def on_key_press(symbol, modifiers):
     if symbol == pyglet.window.key.ESCAPE:
         global window
         window.close()
-
-def shutdown_tv():
-    global cec
-    global tv_state
-    tv = cec.Device(0)
-    tv.standby()
-    tv_state = False
-
-def turnon_tv():
-    global cec
-    global tv_state
-    tv = cec.Device(0)
-    tv.power_on()
-    tv_state = True
-
-schedule.every().day.at("23:30").do(shutdown_tv)
-schedule.every().day.at("8:00").do(turnon_tv)
 
 pyglet.clock.schedule_interval(picture_update, 5)
 pyglet.app.run()
