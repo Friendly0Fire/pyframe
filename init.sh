@@ -9,4 +9,4 @@ SCRIPTPATH=`dirname $SCRIPT`
 cd $SCRIPTPATH
 
 sudo mount -a
-python3 cadre.py
+python3 frame.py

@@ -15,14 +15,14 @@ import datetime
 
 me = singleton.SingleInstance()
 
-bufferedStream = open('cadre.log', 'a', buffering=1)
+bufferedStream = open('frame.log', 'a', buffering=1)
 
 sys.stdout = bufferedStream
 sys.stderr = bufferedStream
 
 print("")
 print("-------------------------------------")
-print("Launching new instance of Cadre.py...")
+print("Launching new instance of frame.py...")
 print("-------------------------------------")
 print("")
 

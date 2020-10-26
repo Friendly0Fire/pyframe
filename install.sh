@@ -18,4 +18,4 @@ crontab cron.tmp
 rm cron.tmp
 
 sudo mkdir /mnt/photos
-sudo su -c "echo '$1 /mnt/photos cifs _netdev,username=root,password=,dir_mode=0755,uid=500,gid=500 0 0' >> /etc/fstab"
+sudo su -c "echo '$1 /mnt/photos   ro,guest,mode=0555,noexec 0 0' >> /etc/fstab"
