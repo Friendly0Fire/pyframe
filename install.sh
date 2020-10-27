@@ -13,7 +13,7 @@ if [[ $1 =~ "\\" ]]; then
 fi
 
 # Python
-sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
+sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver cec-utils
 sudo pip3 install -r requirements.txt
 
 CRONENTRY="* * * * * $DIR/init.sh"
