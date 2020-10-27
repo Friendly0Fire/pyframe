@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-if grep -q '\\' "$1" ; then
+if [[ $1 =~ "\\" ]]; then
     echo "Please use /'s rather than \\'s in your SAMBA share path."
     exit 1
 fi
@@ -16,9 +16,15 @@ fi
 sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
 sudo pip3 install -r requirements.txt
 
+CRONENTRY = "* * * * * python3 $DIR/cadre.py"
+
 # Crontab setup
 crontab -l > cron.tmp
-echo "* * * * * python3 $DIR/cadre.py" >> cron.tmp
+if ! grep -q $CRONENTRY cron.tmp; then
+    echo $CRONENTRY >> cron.tmp
+else
+    echo "Cron entry already exists, skipping..."
+fi
 crontab cron.tmp
 rm cron.tmp
 
