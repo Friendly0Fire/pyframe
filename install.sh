@@ -16,7 +16,7 @@ fi
 sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
 sudo pip3 install -r requirements.txt
 
-CRONENTRY="* * * * * python3 $DIR/cadre.py"
+CRONENTRY="* * * * * $DIR/init.sh"
 
 # Crontab setup
 crontab -l > cron.tmp
