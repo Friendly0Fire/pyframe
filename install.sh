@@ -8,7 +8,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # Python
-sudo apt install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
+sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev unclutter xscreensaver
 sudo pip3 install -r requirements.txt
 
 # Crontab setup
@@ -17,5 +17,5 @@ echo "* * * * * python3 $DIR/cadre.py" >> cron.tmp
 crontab cron.tmp
 rm cron.tmp
 
-sudo mkdir /mnt/photos
-sudo su -c "echo '$1 /mnt/photos   ro,guest,mode=0555,noexec 0 0' >> /etc/fstab"
+sudo mkdir -p /mnt/photos
+sudo su -c "echo '$1 /mnt/photos   ro,guest,mode=0555,noexec,user=nobody 0 0' >> /etc/fstab"
