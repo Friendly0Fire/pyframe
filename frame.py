@@ -58,7 +58,13 @@ class pic(object):
         self.filename = filename
         fstream = open(self.filename, 'rb')
 
-        self.image = pyglet.image.load(self.filename, file=fstream)
+        try:
+            self.image = pyglet.image.load(self.filename, file=fstream)
+        except Exception as ex:
+            print("Could not parse image " + self.filename + ": " + repr(ex))
+            self.image = None
+            return
+
         self.image.anchor_x = self.image.width // 2
         self.image.anchor_y = self.image.height // 2
 
@@ -119,9 +125,15 @@ class pic(object):
                                         anchor_x='left', anchor_y='bottom')
 
     def draw(self):
+        if self.image == None:
+            return
+
         self.image.blit(window_dim[0] // 2, window_dim[1] // 2)
         self.back_label.draw()
         self.label.draw()
+
+    def valid(self):
+        return self.image != None
 
 
 image_at = 0
@@ -132,7 +144,13 @@ def picture_update(dt):
     global current_picture
     global images
     global basepath
-    current_picture = pic(basepath + pathseparator + images[image_at])
+
+    while image_at < len(images):
+        current_picture = pic(basepath + pathseparator + images[image_at])
+        if !current_picture.valid():
+            image_at += 1
+        else:
+            break
 
     now = datetime.datetime.now().time()
     startt = datetime.time(hour=8, minute=0)
@@ -160,7 +178,7 @@ def picture_update(dt):
 
     if istvon:
         image_at += 1
-        if image_at == len(images):
+        if image_at >= len(images):
             images_load()
             image_at = 0
 
