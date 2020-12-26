@@ -20,8 +20,8 @@ CRONENTRY="* * * * * $DIR/init.sh"
 
 # Crontab setup
 crontab -l > cron.tmp
-if ! grep -q $CRONENTRY cron.tmp; then
-    echo $CRONENTRY >> cron.tmp
+if grep -q -F "$CRONENTRY" cron.tmp == 1; then
+    echo "$CRONENTRY" >> cron.tmp
 else
     echo "Cron entry already exists, skipping..."
 fi
@@ -29,7 +29,7 @@ crontab cron.tmp
 rm cron.tmp
 
 sudo mkdir -p /mnt/photos
-if ! grep -q $1 /etc/fstab; then
+if grep -q -F $1 /etc/fstab == 1; then
     sudo su -c "echo '$1 /mnt/photos    cifs    ro,noexec,user=nobody,guest 0 0' >> /etc/fstab"
 else
     echo "Mount entry for $1 already exists, skipping..."
