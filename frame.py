@@ -23,6 +23,7 @@ sys.stderr = bufferedStream
 print("")
 print("-------------------------------------")
 print("Launching new instance of frame.py...")
+print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 print("-------------------------------------")
 print("")
 
@@ -147,7 +148,7 @@ def picture_update(dt):
 
     while image_at < len(images):
         current_picture = pic(basepath + pathseparator + images[image_at])
-        if !current_picture.valid():
+        if not current_picture.valid():
             image_at += 1
         else:
             break
