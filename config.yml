@@ -1,0 +1,4 @@
+--!Config
+cecEnabled: true
+basePath: /mnt/photos
+pathSeparator: /

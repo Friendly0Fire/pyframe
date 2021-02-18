@@ -9,16 +9,41 @@ import time
 from os import walk
 from random import shuffle
 import threading
-import cec
 import sys
 import datetime
+import yaml
+
+bufferedStream = open('frame.log', 'a', buffering=1)
+sys.stdout = bufferedStream
+sys.stderr = bufferedStream
+
+class Config(yaml.YAMLObject):
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!Config'
+
+    def __init__(self):
+        self.cecEnabled = True
+        self.basePath = "/mnt/photos"
+        self.pathSeparator = "/"
+
+config = Config()
+with open("config.yml") as stream:
+    try:
+        config = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+
+cecAvailable = False
+if config.cecEnabled == True:
+    try:
+        import cec
+        cecAvailable = True
+    except ImportError:
+        cecAvailable = False
+
 
 me = singleton.SingleInstance()
 
-bufferedStream = open('frame.log', 'a', buffering=1)
-
-sys.stdout = bufferedStream
-sys.stderr = bufferedStream
 
 print("")
 print("-------------------------------------")
@@ -27,13 +52,11 @@ print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 print("-------------------------------------")
 print("")
 
-basepath = '/mnt/photos'
-pathseparator = '/'
-
 images = []
 def images_load():
     global images
-    for (dirpath, dirnames, filenames) in walk(basepath):
+    global config
+    for (dirpath, dirnames, filenames) in walk(config.basePath):
         images.extend(filenames)
         break
 
@@ -48,7 +71,8 @@ images_load()
 locale.setlocale(locale.LC_ALL, '')
 os.environ['DISPLAY'] = ":0"
 
-cec.init()
+if cecAvailable:
+    cec.init()
 
 window = pyglet.window.Window(fullscreen=True)
 window.set_mouse_visible(False)
@@ -144,10 +168,10 @@ def picture_update(dt):
     global image_at
     global current_picture
     global images
-    global basepath
+    global config
 
     while image_at < len(images):
-        current_picture = pic(basepath + pathseparator + images[image_at])
+        current_picture = pic(config.basePath + config.pathSeparator + images[image_at])
         if not current_picture.valid():
             image_at += 1
         else:
@@ -157,25 +181,28 @@ def picture_update(dt):
     startt = datetime.time(hour=8, minute=0)
     endt = datetime.time(hour=23, minute=30)
 
-    istvon = False
-    try:
-        global cec
-        tv = cec.Device(0)
-
-        istvon = tv.is_on()
-
-        if startt <= now and endt >= now:
-            if not istvon:
-                tv.power_on()
-                print("Powering TV on...")
-        else:
-            if istvon:
-                tv.standby()
-                istvon = False
-                print("Powering TV off...")
-    except:
-        print("Exception in CEC TV handling: ", sys.exc_info()[0])
+    if cecAvailable:
         istvon = False
+        try:
+            global cec
+            tv = cec.Device(0)
+
+            istvon = tv.is_on()
+
+            if startt <= now and endt >= now:
+                if not istvon:
+                    tv.power_on()
+                    print("Powering TV on...")
+            else:
+                if istvon:
+                    tv.standby()
+                    istvon = False
+                    print("Powering TV off...")
+        except:
+            print("Exception in CEC TV handling: ", sys.exc_info()[0])
+            istvon = False
+    else:
+        istvon = True
 
     if istvon:
         image_at += 1
