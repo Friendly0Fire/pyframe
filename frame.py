@@ -17,6 +17,13 @@ bufferedStream = open('frame.log', 'a', buffering=1)
 sys.stdout = bufferedStream
 sys.stderr = bufferedStream
 
+print("")
+print("-------------------------------------")
+print("Launching new instance of frame.py...")
+print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+print("-------------------------------------")
+print("")
+
 class Config(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!Config'
@@ -43,14 +50,6 @@ if config.cecEnabled == True:
 
 
 me = singleton.SingleInstance()
-
-
-print("")
-print("-------------------------------------")
-print("Launching new instance of frame.py...")
-print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-print("-------------------------------------")
-print("")
 
 images = []
 def images_load():
