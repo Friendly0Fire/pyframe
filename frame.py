@@ -117,14 +117,10 @@ class pic(object):
         }
 
         xmp_tree = ET.fromstring(xmp_str)
-        xmp_desc = xmp_tree.find('rdf:RDF', namesp)
-        .find('rdf:Description', namesp)
+        xmp_desc = xmp_tree.find('rdf:RDF', namesp).find('rdf:Description', namesp)
 
         try:
-            self.title = xmp_desc.find('dc:title', namesp)
-            .find('rdf:Alt', namesp)
-            .find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li')
-            .text.strip()
+            self.title = xmp_desc.find('dc:title', namesp).find('rdf:Alt', namesp).find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li').text.strip()
         except ex:
             self.title = None
 
