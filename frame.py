@@ -1,17 +1,18 @@
-import pyglet
-import exifread
-from tendo import singleton
-import xml.etree.ElementTree as ET
 import datetime
 import locale
-import os, subprocess
+import os
+import subprocess
+import sys
+import threading
 import time
+import xml.etree.ElementTree as ET
 from os import walk
 from random import shuffle
-import threading
-import sys
-import datetime
+
+import exifread
+import pyglet
 import yaml
+from tendo import singleton
 
 bufferedStream = open('frame.log', 'a', buffering=1)
 sys.stdout = bufferedStream
@@ -24,6 +25,7 @@ print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 print("-------------------------------------")
 print("")
 
+
 class Config(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!Config'
@@ -33,6 +35,7 @@ class Config(yaml.YAMLObject):
         self.basePath = "/mnt/photos"
         self.pathSeparator = "/"
 
+
 config = Config()
 with open("config.yml") as stream:
     try:
@@ -41,7 +44,7 @@ with open("config.yml") as stream:
         print(exc)
 
 cecAvailable = False
-if config.cecEnabled == True:
+if config.cecEnabled:
     try:
         import cec
         cecAvailable = True
@@ -52,10 +55,12 @@ if config.cecEnabled == True:
 me = singleton.SingleInstance()
 
 images = []
+
+
 def images_load():
     global images
     global config
-    for (dirpath, dirnames, filenames) in walk(config.basePath):
+    for (_, _, filenames) in walk(config.basePath):
         images.extend(filenames)
         break
 
@@ -64,6 +69,7 @@ def images_load():
         exit(1)
 
     shuffle(images)
+
 
 images_load()
 
@@ -76,6 +82,7 @@ if cecAvailable:
 window = pyglet.window.Window(fullscreen=True)
 window.set_mouse_visible(False)
 window_dim = window.get_size()
+
 
 class pic(object):
     def __init__(self, filename):
@@ -100,24 +107,28 @@ class pic(object):
         fstream.close()
         xmp_start = data.find('<x:xmpmeta')
         xmp_end = data.find('</x:xmpmeta')
-        xmp_str = data[xmp_start:xmp_end+12]
+        xmp_str = data[xmp_start:xmp_end + 12]
 
         namesp = {
-                'x': 'adobe:ns:meta/',
-                'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                'photoshop': 'http://ns.adobe.com/photoshop/1.0/',
-                'dc': 'http://purl.org/dc/elements/1.1/'
-                }
+            'x': 'adobe:ns:meta/',
+            'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'photoshop': 'http://ns.adobe.com/photoshop/1.0/',
+            'dc': 'http://purl.org/dc/elements/1.1/'
+        }
 
         xmp_tree = ET.fromstring(xmp_str)
-        xmp_desc = xmp_tree.find('rdf:RDF', namesp).find('rdf:Description', namesp)
+        xmp_desc = xmp_tree.find('rdf:RDF', namesp)
+        .find('rdf:Description', namesp)
 
         try:
-            self.title = xmp_desc.find('dc:title', namesp).find('rdf:Alt', namesp).find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li').text.strip()
-        except:
+            self.title = xmp_desc.find('dc:title', namesp)
+            .find('rdf:Alt', namesp)
+            .find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li')
+            .text.strip()
+        except ex:
             self.title = None
 
-        if  self.title != None:
+        if self.title is not None:
             self.fullname = self.title
         else:
             self.city = xmp_desc.get('{http://ns.adobe.com/photoshop/1.0/}City')
@@ -132,24 +143,24 @@ class pic(object):
         else:
             self.shot_time = None
 
-        if self.shot_time != None:
+        if self.shot_time is not None:
             self.fullname += self.shot_time.strftime(" (%d %B %Y)")
 
         self.label = pyglet.text.Label(self.fullname,
-                                        font_name='Droid Sans Bold',
-                                        font_size=36,
-                                        x=10, y=10,
-                                        anchor_x='left', anchor_y='bottom')
+                                       font_name='Droid Sans Bold',
+                                       font_size=36,
+                                       x=10, y=10,
+                                       anchor_x='left', anchor_y='bottom')
 
         self.back_label = pyglet.text.Label(self.fullname,
-                                        font_name='Droid Sans Bold',
-                                        font_size=36,
-                                        x=12, y=8,
-                                        color=(0, 0, 0, 255),
-                                        anchor_x='left', anchor_y='bottom')
+                                            font_name='Droid Sans Bold',
+                                            font_size=36,
+                                            x=12, y=8,
+                                            color=(0, 0, 0, 255),
+                                            anchor_x='left', anchor_y='bottom')
 
     def draw(self):
-        if self.image == None:
+        if self.image is not None:
             return
 
         self.image.blit(window_dim[0] // 2, window_dim[1] // 2)
@@ -157,11 +168,12 @@ class pic(object):
         self.label.draw()
 
     def valid(self):
-        return self.image != None
+        return self.image is not None
 
 
 image_at = 0
 current_picture = None
+
 
 def picture_update(dt):
     global image_at
@@ -197,7 +209,7 @@ def picture_update(dt):
                     tv.standby()
                     istvon = False
                     print("Powering TV off...")
-        except:
+        except exc:
             print("Exception in CEC TV handling: ", sys.exc_info()[0])
             istvon = False
     else:
@@ -209,19 +221,22 @@ def picture_update(dt):
             images_load()
             image_at = 0
 
+
 @window.event
 def on_draw():
     global window
     global current_picture
     window.clear()
-    if current_picture != None:
+    if current_picture is not None:
         current_picture.draw()
+
 
 @window.event
 def on_key_press(symbol, modifiers):
     if symbol == pyglet.window.key.ESCAPE:
         global window
         window.close()
+
 
 pyglet.clock.schedule_interval(picture_update, 5)
 pyglet.app.run()
