@@ -22,5 +22,3 @@ if grep -q -F $1 /etc/fstab; then
 else
     sudo su -c "echo '$1 /mnt/photos    cifs    ro,noexec,user=nobody,guest 0 0' >> /etc/fstab"
 fi
-
-cp .xscreensaver ~/.xscreensaver

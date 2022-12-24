@@ -29,4 +29,6 @@ sudo apt-get install --no-install-recommends xserver-xorg-video-all xserver-xorg
 ```
  and enable GUI autologin through `raspi-config`.
 
- It is also recommended to enable "Network at boot" in `raspi-config` in order to make sure the Samba share mounting succeeds.
+It is also recommended to enable "Network at boot" in `raspi-config` in order to make sure the Samba share mounting succeeds.
+
+To disable the screensaver, the recommended approach is to edit `/etc/lightdm/lightdm.conf`, look for the line `#xserver-command=X` and change it to `xserver-command=X -s 0 -dpms -s noblank`, which disables screen timeout, disables display power management services, and disables blanking. Note that this will not affect PiFrame's ability to turn off the screen at night, which uses HDMI-CEC instead. If your screen does not support CEC, this may cause the screen to never sleep.
