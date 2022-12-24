@@ -51,6 +51,7 @@ if config.cecEnabled:
     except ImportError:
         cecAvailable = False
 
+print("CEC is", "available" if cecAvailable else "unavailable.")
 
 me = singleton.SingleInstance()
 
@@ -72,6 +73,7 @@ def images_load():
 
 
 images_load()
+print("Found", len(images), "pictures.")
 
 locale.setlocale(locale.LC_ALL, '')
 os.environ['DISPLAY'] = ":0"
@@ -79,20 +81,24 @@ os.environ['DISPLAY'] = ":0"
 if cecAvailable:
     cec.init()
 
-window = pyglet.window.Window(fullscreen=True)
+window = pyglet.window.Window(fullscreen=True, vsync=True)
 window.set_mouse_visible(False)
 window_dim = window.get_size()
+
+print("Detected screen resolution:", window_dim[0], "x", window_dim[1])
 
 
 class pic(object):
     def __init__(self, filename):
         self.filename = filename
+        self.drawn = False
+
         fstream = open(self.filename, 'rb')
 
         try:
             self.image = pyglet.image.load(self.filename, file=fstream)
         except Exception as ex:
-            print("Could not parse image " + self.filename + ": " + repr(ex))
+            print("Could not parse image" + self.filename + ":" + repr(ex))
             self.image = None
             return
 
@@ -121,7 +127,7 @@ class pic(object):
 
         try:
             self.title = xmp_desc.find('dc:title', namesp).find('rdf:Alt', namesp).find('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li').text.strip()
-        except ex:
+        except Exception:
             self.title = None
 
         if self.title is not None:
@@ -156,26 +162,26 @@ class pic(object):
                                             anchor_x='left', anchor_y='bottom')
 
     def draw(self):
-        if self.image is not None:
+        if self.image is None:
             return
 
         self.image.blit(window_dim[0] // 2, window_dim[1] // 2)
         self.back_label.draw()
         self.label.draw()
+        self.drawn = True
 
     def valid(self):
         return self.image is not None
 
-
 image_at = 0
 current_picture = None
-
 
 def picture_update(dt):
     global image_at
     global current_picture
     global images
     global config
+    global cecAvailable
 
     while image_at < len(images):
         current_picture = pic(config.basePath + config.pathSeparator + images[image_at])
@@ -205,9 +211,9 @@ def picture_update(dt):
                     tv.standby()
                     istvon = False
                     print("Powering TV off...")
-        except exc:
-            print("Exception in CEC TV handling: ", sys.exc_info()[0])
-            istvon = False
+        except Exception as ex:
+            print("Exception in CEC TV handling:", ex)
+            istvon = True
     else:
         istvon = True
 
@@ -217,22 +223,22 @@ def picture_update(dt):
             images_load()
             image_at = 0
 
-
 @window.event
 def on_draw():
     global window
     global current_picture
-    window.clear()
-    if current_picture is not None:
+    if current_picture is not None and current_picture.drawn == False:
+        window.clear()
         current_picture.draw()
 
 
 @window.event
 def on_key_press(symbol, modifiers):
     if symbol == pyglet.window.key.ESCAPE:
+        print("ESC detected, exiting...")
         global window
         window.close()
 
 
-pyglet.clock.schedule_interval(picture_update, 5)
+pyglet.clock.schedule_interval_soft(picture_update, 5)
 pyglet.app.run()

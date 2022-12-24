@@ -1,4 +1,4 @@
-pyglet>=1.2.4
+pyglet>=1.2.4,<2.0
 ExifRead>=2.1.2
 tendo
 cec; sys_platform != 'win32'
