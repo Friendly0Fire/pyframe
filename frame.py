@@ -61,6 +61,8 @@ images = []
 def images_load():
     global images
     global config
+    images.clear()
+
     for (_, _, filenames) in walk(config.basePath):
         images.extend(filenames)
         break
