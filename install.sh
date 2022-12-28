@@ -13,12 +13,12 @@ if [[ $1 =~ "\\" ]]; then
 fi
 
 # Python
-sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev cec-utils
-sudo pip3 install -r requirements.txt
+sudo apt -y install python3 python3-pip cifs-utils freeglut3-dev cec-utils libcec-dev
+pip3 install -r requirements.txt
 
 sudo mkdir -p /mnt/photos
 if grep -q -F $1 /etc/fstab; then
     echo "Mount entry for $1 already exists, skipping..."
 else
-    sudo su -c "echo '$1 /mnt/photos    cifs    ro,noexec,user=nobody,guest 0 0' >> /etc/fstab"
+    sudo su -c "echo '$1 /mnt/photos    cifs    ro,noexec,noserverino,user=nobody,guest 0 0' >> /etc/fstab"
 fi

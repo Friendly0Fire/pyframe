@@ -34,6 +34,7 @@ class Config(yaml.YAMLObject):
         self.cecEnabled = True
         self.basePath = "/mnt/photos"
         self.pathSeparator = "/"
+        self.locale = ""
 
 
 config = Config()
@@ -77,7 +78,7 @@ def images_load():
 images_load()
 print("Found", len(images), "pictures.")
 
-locale.setlocale(locale.LC_ALL, '')
+locale.setlocale(locale.LC_ALL, config.locale)
 os.environ['DISPLAY'] = ":0"
 
 if cecAvailable:
