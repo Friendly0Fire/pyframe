@@ -8,6 +8,7 @@ import time
 import xml.etree.ElementTree as ET
 from os import walk
 from random import shuffle
+from requests import post as http_post, get as http_get
 
 import exifread
 import pyglet
@@ -25,12 +26,14 @@ print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 print("-------------------------------------")
 print("")
 
-
 class Config(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!Config'
 
     def __init__(self):
+        self.restEndpoint = {}
+        self.startTime = {}
+        self.stopTime = {}
         self.cecEnabled = True
         self.basePath = "/mnt/photos"
         self.pathSeparator = "/"
@@ -45,6 +48,7 @@ with open("config.yml") as stream:
         print(exc)
 
 cecAvailable = False
+displayOn = None  # Default indeterminate state
 if config.cecEnabled:
     try:
         import cec
@@ -75,7 +79,7 @@ def images_load():
 images_load()
 print("Found", len(images), "pictures.")
 
-if config.locale != "":
+if hasattr(config, "locale") and config.locale != "":
     locale.setlocale(locale.LC_ALL, config.locale)
 
 if cecAvailable:
@@ -180,15 +184,77 @@ class pic(object):
     def valid(self):
         return self.image is not None
 
+
 image_at = 0
 current_picture = None
+
+def call_rest(mode):
+    global config
+
+    key = "turn_" + mode
+    headers = {}
+    if "headers" in config.restEndpoint:
+        headers = config.restEndpoint["headers"]
+
+    if "post_data" in config.restEndpoint[key]:
+        http_post(config.restEndpoint[key]["url"],
+                  json=config.restEndpoint[key]["post_data"],
+                  headers=headers,
+                  timeout=10)
+    else:
+        http_get(config.restEndpoint[key]["url"],
+                 headers=headers,
+                 timeout=10)
+
+def set_display_state(shouldBeOn: bool):
+    if not config.startTime or not config.stopTime:
+        return
+
+    global cecAvailable
+    global displayOn
+    if cecAvailable:
+        try:
+            tv = cec.Device(0)
+
+            displayOn = tv.is_on()
+
+            if shouldBeOn:
+                if displayOn is not True:
+                    tv.power_on()
+                    displayOn = True
+                    print("Powering TV on...")
+            else:
+                if displayOn is not False:
+                    tv.standby()
+                    displayOn = False
+                    print("Powering TV off...")
+        except Exception as excec:
+            print("Exception in CEC TV handling:", excec)
+            displayOn = True  # Assume TV is on, if it's not it's not a critical fault
+    elif config.restEndpoint:
+        try:
+            if shouldBeOn and displayOn is not True:
+                call_rest("on")
+                displayOn = True
+            elif not shouldBeOn and displayOn is not False:
+                call_rest("off")
+                displayOn = False
+        except Exception as exreq:
+            print("Exception in REST API TV handling:", exreq)
+            displayOn = True  # Assume TV is on, if it's not it's not a critical fault
+    else:
+        if shouldBeOn and displayOn is not True:
+            os.system("xset dpms force on")
+            displayOn = True
+        elif not shouldBeOn and displayOn is not False:
+            os.system("xset dpms force off")
+            displayOn = False
+
+    return displayOn
 
 def picture_update(dt):
     global image_at
     global current_picture
-    global images
-    global config
-    global cecAvailable
 
     while image_at < len(images):
         current_picture = pic(config.basePath + config.pathSeparator + images[image_at])
@@ -198,33 +264,11 @@ def picture_update(dt):
             break
 
     now = datetime.datetime.now().time()
-    startt = datetime.time(hour=8, minute=0)
-    endt = datetime.time(hour=23, minute=30)
+    startt = datetime.time(hour=config.startTime["hour"], minute=config.startTime["minute"])
+    endt = datetime.time(hour=config.stopTime["hour"], minute=config.stopTime["minute"])
+    set_display_state(startt <= now and endt >= now)
 
-    if cecAvailable:
-        istvon = False
-        try:
-            global cec
-            tv = cec.Device(0)
-
-            istvon = tv.is_on()
-
-            if startt <= now and endt >= now:
-                if not istvon:
-                    tv.power_on()
-                    print("Powering TV on...")
-            else:
-                if istvon:
-                    tv.standby()
-                    istvon = False
-                    print("Powering TV off...")
-        except Exception as ex:
-            print("Exception in CEC TV handling:", ex)
-            istvon = True
-    else:
-        istvon = True
-
-    if istvon:
+    if displayOn:
         image_at += 1
         if image_at >= len(images):
             images_load()
@@ -232,9 +276,7 @@ def picture_update(dt):
 
 @window.event
 def on_draw():
-    global window
-    global current_picture
-    if current_picture is not None and current_picture.drawn == False:
+    if current_picture is not None and current_picture.drawn is False:
         window.clear()
         current_picture.draw()
 
@@ -243,7 +285,9 @@ def on_draw():
 def on_key_press(symbol, modifiers):
     if symbol == pyglet.window.key.ESCAPE:
         print("ESC detected, exiting...")
-        global window
+        window.clear()
+        window.flip()
+        set_display_state(False)
         window.close()
 
 

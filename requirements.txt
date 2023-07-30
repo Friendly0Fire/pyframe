@@ -3,3 +3,4 @@ exifread>=2.1.2
 tendo
 cec; sys_platform != 'win32'
 pyyaml
+requests

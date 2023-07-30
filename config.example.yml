@@ -1,5 +1,30 @@
 --- !Config
-cecEnabled: true
-basePath: /mnt/photos
+# If using a Raspberry Pi and a CEC TV, prefer using CEC
+cecEnabled: false
+# If the display is controlled by a smart switch, can use a REST API to turn it off/on
+# This example mostly follows a Home Assistant API call structure
+# Will do a POST request with a JSON payload if "post_data" is set and a GET request otherwise
+restEndpoint:
+  headers:
+    "Authorization": "Bearer TOKEN"
+    "content-type": "application/json"
+  turn_on:
+    url: http://server.example/api/services/switch/turn_on
+    post_data:
+      "entity_id": "switch.example"
+  turn_off:
+    url: http://server.example/api/services/switch/turn_off
+    post_data:
+      "entity_id": "switch.example"
+# Where to find the pictures, on Windows this can also be a network share, e.g. \\server\pics
+basePath: /mnt/pics
+# / on Linux, \ on Windows
 pathSeparator: /
-locale: 
+# Times at which to turn the display on or off
+# If either is missing, display control is disabled
+startTime:
+  hour: 8
+  minute: 0
+stopTime:
+  hour: 23
+  minute: 59
