@@ -200,11 +200,11 @@ def call_rest(mode):
         http_post(config.restEndpoint[key]["url"],
                   json=config.restEndpoint[key]["post_data"],
                   headers=headers,
-                  timeout=10)
+                  timeout=10).raise_for_status()
     else:
         http_get(config.restEndpoint[key]["url"],
                  headers=headers,
-                 timeout=10)
+                 timeout=10).raise_for_status()
 
 def set_display_state(shouldBeOn: bool):
     if not config.startTime or not config.stopTime:
