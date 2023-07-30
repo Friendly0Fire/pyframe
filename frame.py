@@ -52,8 +52,6 @@ if config.cecEnabled:
     except ImportError:
         cecAvailable = False
 
-print("CEC is", "available" if cecAvailable else "unavailable.")
-
 me = singleton.SingleInstance()
 
 images = []
@@ -74,15 +72,21 @@ def images_load():
 
     shuffle(images)
 
-
 images_load()
 print("Found", len(images), "pictures.")
 
-locale.setlocale(locale.LC_ALL, config.locale)
-os.environ['DISPLAY'] = ":0"
+if config.locale != "":
+    locale.setlocale(locale.LC_ALL, config.locale)
 
 if cecAvailable:
-    cec.init()
+    try:
+        cec.init()
+    except Exception as ex:
+        print("Could not initialize CEC: ", ex)
+        cecAvailable = False
+
+print("CEC is", "available" if cecAvailable else "unavailable.")
+
 
 window = pyglet.window.Window(fullscreen=True, vsync=True)
 window.set_mouse_visible(False)

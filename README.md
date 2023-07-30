@@ -5,12 +5,12 @@ PyFrame is a simple Python-based photo frame which loads pictures from a Samba s
 ## Installation
 
 Install prerequisites:
-```
+```shell
 sudo apt -y install python3 python3-pip python3-venv cifs-utils freeglut3-dev cec-utils libcec-dev
 ```
 
 Install python packages from `requirements.txt`. A virtual environment is recommended, e.g.,
-```
+```shell
 python3 -m venv ~/pyframe.venv
 source ~/pyframe.venv/bin/activate
 pip3 install -r requirements.txt
@@ -44,21 +44,21 @@ Simply add the full path to `init.sh` from your `.xsession` file.
 ### If starting from a clean slate without a display manager
 
 You can install the bare minimum X server with:
-```
-sudo apt-get install xserver-xorg-core xinit --no-install-recommends --no-install-suggests
+```shell
+sudo apt-get install xserver-xorg-core xserver-xorg-input-libinput xinit --no-install-recommends --no-install-suggests
 ```
 
 To enable X on login, edit your `.bash_profile`, adding:
-```
+```shell
 [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
 ```
 
-Then, follow the instructions in "If only using a display manager".
+Then, follow the instructions in "If only using a display manager". You will probably want to reboot after this.
 
 ### Autologin on Ubuntu
 
 The correct way to autologin on Ubuntu is to edit the tty service as follows:
-```
+```shell
 sudo systemctl edit getty@tty1.service
 ```
 
