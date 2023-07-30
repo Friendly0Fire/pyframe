@@ -230,7 +230,7 @@ def set_display_state(shouldBeOn: bool):
                     print("Powering TV off...")
         except Exception as excec:
             print("Exception in CEC TV handling:", excec)
-            displayOn = True  # Assume TV is on, if it's not it's not a critical fault
+            displayOn = None  # Keep in indeterminate state, we'll check again on the next refresh
     elif config.restEndpoint:
         try:
             if shouldBeOn and displayOn is not True:
@@ -241,7 +241,7 @@ def set_display_state(shouldBeOn: bool):
                 displayOn = False
         except Exception as exreq:
             print("Exception in REST API TV handling:", exreq)
-            displayOn = True  # Assume TV is on, if it's not it's not a critical fault
+            displayOn = None  # Keep in indeterminate state, we'll check again on the next refresh
     else:
         if shouldBeOn and displayOn is not True:
             os.system("xset dpms force on")
