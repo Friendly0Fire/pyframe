@@ -48,7 +48,7 @@ You can install the bare minimum X server with:
 sudo apt-get install xserver-xorg-core xserver-xorg-input-libinput x11-xserver-utils xinit --no-install-recommends --no-install-suggests
 ```
 
-To enable X on login, edit your `.bash_profile`, adding:
+To enable X on login, edit your `.bash_profile` or `.bashrc` (use whichever already exists), adding:
 ```shell
 [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
 ```
