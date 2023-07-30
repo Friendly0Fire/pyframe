@@ -16,6 +16,8 @@ source ~/pyframe.venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
+**N.B.** If not using a virtual environment at `~/pyframe.venv`, the provided `init.sh` script will need to be adjusted to the correct virtual environment path.
+
 ### Handling pictures location
 
 By default, PyFrame expects the photos to be stored on a remote file server and mounted to `/mnt/photos`. If the files are stored locally, you can simply edit your configuration to point to the correct location.
@@ -37,7 +39,7 @@ It is recommended to disable the screensaver by placing an empty file named `.xs
 
 ### If only using a display manager
 
-Simply run `init.sh` from your `.xsession` file.
+Simply add the full path to `init.sh` from your `.xsession` file.
 
 ### If starting from a clean slate without a display manager
 
@@ -45,6 +47,29 @@ You can install the bare minimum X server with:
 ```
 sudo apt-get install xserver-xorg-core xinit --no-install-recommends --no-install-suggests
 ```
+
+To enable X on login, edit your `.bash_profile`, adding:
+```
+[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
+```
+
+Then, follow the instructions in "If only using a display manager".
+
+### Autologin on Ubuntu
+
+The correct way to autologin on Ubuntu is to edit the tty service as follows:
+```
+sudo systemctl edit getty@tty1.service
+```
+
+Inside this new file, add the following at the top of the file (between the marked comments):
+```
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --noissue --autologin <your username> %I $TERM
+Type=idle
+```
+making sure to replace `<your username>` with your desired autologin username.
 
 ### Pi-specific guide
 
