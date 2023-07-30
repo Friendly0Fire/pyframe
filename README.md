@@ -39,20 +39,19 @@ It is recommended to disable the screensaver by placing an empty file named `.xs
 
 ### If only using a display manager
 
-Simply add the full path to `init.sh` from your `.xsession` file.
+Simply add the full path to `init.sh` from your `.xsession` file. To prevent any form of screensaver from starting, you can use the provided `xset.sh` file and call it before `init.sh`.
 
 ### If starting from a clean slate without a display manager
 
 You can install the bare minimum X server with:
 ```shell
-sudo apt-get install xserver-xorg-core xserver-xorg-input-libinput xinit --no-install-recommends --no-install-suggests
+sudo apt-get install xserver-xorg-core xserver-xorg-input-libinput x11-xserver-utils xinit --no-install-recommends --no-install-suggests
 ```
 
 To enable X on login, edit your `.bash_profile`, adding:
 ```shell
 [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx
 ```
-
 Then, follow the instructions in "If only using a display manager". You will probably want to reboot after this.
 
 ### Autologin on Ubuntu
