@@ -15,9 +15,28 @@ import pyglet
 import yaml
 from tendo import singleton
 
-bufferedStream = open('frame.log', 'a', buffering=1)
-sys.stdout = bufferedStream
-sys.stderr = bufferedStream
+import random
+
+def is_subset(sub, set):
+    def recurse_is_subset(sub, set):
+        if isinstance(set, list) and isinstance(sub, list):
+            if len(set) < len(sub):
+                yield False
+            for v1, v2 in zip(sub, set):
+                yield is_subset(v1, v2)
+        elif isinstance(set, dict) and isinstance(sub, dict):
+            subset = {}
+            for k, v in set.items():
+                if k in sub:
+                    subset[k] = v
+            yield subset == sub
+        else:
+            yield sub == set
+    return all(recurse_is_subset(sub, set))
+
+#bufferedStream = open('frame.log', 'a', buffering=1)
+#sys.stdout = bufferedStream
+#sys.stderr = bufferedStream
 
 print("")
 print("-------------------------------------")
@@ -188,23 +207,30 @@ class pic(object):
 image_at = 0
 current_picture = None
 
-def call_rest(mode):
-    global config
-
-    key = "turn_" + mode
+def call_rest(key):
     headers = {}
     if "headers" in config.restEndpoint:
         headers = config.restEndpoint["headers"]
 
     if "post_data" in config.restEndpoint[key]:
-        http_post(config.restEndpoint[key]["url"],
-                  json=config.restEndpoint[key]["post_data"],
-                  headers=headers,
-                  timeout=10).raise_for_status()
+        response = http_post(config.restEndpoint[key]["url"],
+                             json=config.restEndpoint[key]["post_data"],
+                             headers=headers,
+                             timeout=10)
     else:
-        http_get(config.restEndpoint[key]["url"],
-                 headers=headers,
-                 timeout=10).raise_for_status()
+        response = http_get(config.restEndpoint[key]["url"],
+                            headers=headers,
+                            timeout=10)
+
+    response.raise_for_status()
+
+    if "return_like" in config.restEndpoint[key]:
+        return_val = response.json()
+        return_like = config.restEndpoint[key]["return_like"]
+
+        return is_subset(return_like, return_val)
+    else:
+        return True
 
 def set_display_state(shouldBeOn: bool):
     if not config.startTime or not config.stopTime:
@@ -231,14 +257,21 @@ def set_display_state(shouldBeOn: bool):
         except Exception as excec:
             print("Exception in CEC TV handling:", excec)
             displayOn = None  # Keep in indeterminate state, we'll check again on the next refresh
-    elif config.restEndpoint:
+    elif config.restEndpoint and "turn_on" in config.restEndpoint and "turn_off" in config.restEndpoint:
         try:
+            # Occasionally retest state if checking is available
+            if "check" in config.restEndpoint and random.randint(1, 4) == 1:
+                displayOn = call_rest("check")
+
+            if displayOn is None and "check" in config.restEndpoint:
+                displayOn = call_rest("check")
+
             if shouldBeOn and displayOn is not True:
-                call_rest("on")
-                displayOn = True
+                if call_rest("turn_on"):
+                    displayOn = True
             elif not shouldBeOn and displayOn is not False:
-                call_rest("off")
-                displayOn = False
+                if call_rest("turn_off"):
+                    displayOn = False
         except Exception as exreq:
             print("Exception in REST API TV handling:", exreq)
             displayOn = None  # Keep in indeterminate state, we'll check again on the next refresh
